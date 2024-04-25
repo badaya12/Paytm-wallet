@@ -39,4 +39,4 @@ jobs:
           sudo docker pull badaya12/paytmwallet:latest
           sudo docker stop web-app || true
           sudo docker rm web-app || true
-          sudo docker run -e DATABASE_URL ${{SECRETS.DB_URL}} --restart -d --name paytmwallet -p 3005:3000 badaya12/paytmwallet:latest  
+          sudo docker run -e DATABASE_URL=${{SECRETS.DATABASE_URL}} --restart=always -d --name paytmwallet -p 3005:3000 badaya12/paytmwallet:latest  
