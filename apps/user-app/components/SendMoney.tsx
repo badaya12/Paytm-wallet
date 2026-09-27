@@ -37,10 +37,10 @@ export function SendCard() {
     return <div className="h-[90vh]">
         <Card title="Send">
             <div>
-                <TextInput placeholder={"Number"} label="Number" onChange={setNumber} />
-                <TextInput placeholder={"Amount"} label="Amount (INR)" onChange={setAmount} />
+                <TextInput placeholder={"Number"} label="Number" value={number} onChange={setNumber} />
+                <TextInput placeholder={"Amount"} label="Amount (INR)" value={amount} onChange={setAmount} />
                 <div className="pt-4 flex justify-center">
-                    <Button onClick={send}>{pending ? "Sending..." : "Send"}</Button>
+                    <Button onClick={send} disabled={pending}>{pending ? "Sending..." : "Send"}</Button>
                 </div>
                 {status ? <div className="pt-4 text-center text-sm text-slate-600">{status}</div> : null}
             </div>
