@@ -1,6 +1,6 @@
-import { PrismaClient } from '@prisma/client'
 import bcrypt from "bcrypt";
-const prisma = new PrismaClient()
+import prisma from "../index";
+import { postLedgerTransaction } from "../ledger";
 
 async function main() {
   const alice = await prisma.user.upsert({
@@ -10,12 +10,6 @@ async function main() {
       number: '1111111111',
       password: await bcrypt.hash('alice', 10),
       name: 'alice',
-      Balance: {
-        create: {
-            amount: 20000,
-            locked: 0
-        }
-      },
       OnRampTransaction: {
         create: {
           startTime: new Date(),
@@ -34,12 +28,6 @@ async function main() {
       number: '2222222222',
       password: await bcrypt.hash('bob', 10),
       name: 'bob',
-      Balance: {
-        create: {
-            amount: 2000,
-            locked: 0
-        }
-      },
       OnRampTransaction: {
         create: {
           startTime: new Date(),
@@ -51,6 +39,25 @@ async function main() {
       },
     },
   })
+
+  // Opening balances go through the ledger so cached balances match derived ones.
+  await postLedgerTransaction({
+    idempotencyKey: "onramp:token__1",
+    type: "OnRamp",
+    legs: [
+      { userId: null, amount: -20000 },
+      { userId: alice.id, amount: 20000 }
+    ]
+  })
+  await postLedgerTransaction({
+    idempotencyKey: `seed:opening:${bob.number}`,
+    type: "Adjustment",
+    legs: [
+      { userId: null, amount: -2000 },
+      { userId: bob.id, amount: 2000 }
+    ]
+  })
+
   console.log({ alice, bob })
 }
 main()
