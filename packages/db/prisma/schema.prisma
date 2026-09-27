@@ -17,6 +17,7 @@ model User {
   Balance           Balance[]
   SentTransfer P2PTransaction[] @relation(name : "fromTransactions")
   ReceivedTransfer P2PTransaction[] @relation(name : "toTransactions")
+  LedgerEntry LedgerEntry[]
 }
 
 model Merchant {
@@ -53,6 +54,37 @@ model P2PTransaction{
   fromId Int
   toId Int
   timeStamp DateTime
+}
+
+/// An atomic, balanced set of ledger entries. `idempotencyKey` is the natural
+/// key of the business event that produced it, so replaying that event is a no-op.
+model LedgerTransaction {
+  id             String                @id @default(uuid())
+  type           LedgerTransactionType
+  idempotencyKey String                @unique
+  createdAt      DateTime              @default(now())
+  entries        LedgerEntry[]
+}
+
+/// One signed leg of a ledger transaction, in paise. A null `userId` is the
+/// external account (the bank / PSP on the other side of an on-ramp).
+model LedgerEntry {
+  id            Int               @id @default(autoincrement())
+  transactionId String
+  transaction   LedgerTransaction @relation(fields: [transactionId], references: [id])
+  userId        Int?
+  user          User?             @relation(fields: [userId], references: [id])
+  amount        Int
+  createdAt     DateTime          @default(now())
+
+  @@index([userId, createdAt])
+  @@index([transactionId])
+}
+
+enum LedgerTransactionType {
+  OnRamp
+  P2pTransfer
+  Adjustment
 }
 
 enum AuthType {

@@ -1,34 +1,49 @@
 "use client"
 import { Button } from "@repo/ui/button";
 import { Card } from "@repo/ui/card";
-import { Center } from "@repo/ui/Center";
 import { TextInput } from "@repo/ui/textInput";
-import { useState } from "react";
-import {createP2PTransactions} from "../app/lib/actions/createP2Ptxn"
+import { useRef, useState } from "react";
+import { useRouter } from "next/navigation";
+import { createP2PTransactions } from "../app/lib/actions/createP2Ptxn"
 
-export  function SendCard() {
+export function SendCard() {
     const [number, setNumber] = useState("");
     const [amount, setAmount] = useState("");
+    const [status, setStatus] = useState<string | null>(null);
+    const [pending, setPending] = useState(false);
+    // Kept across retries of the same submission so a double click or a retried
+    // request cannot post the transfer twice.
+    const requestId = useRef<string | null>(null);
+    const router = useRouter();
+
+    const send = async () => {
+        setPending(true);
+        if (!requestId.current) {
+            requestId.current = crypto.randomUUID();
+        }
+        try {
+            const { message } = await createP2PTransactions(Number(amount), number, requestId.current);
+            setStatus(message);
+            if (message === "Transaction successful") {
+                requestId.current = null;
+                setAmount("");
+                router.refresh();
+            }
+        } finally {
+            setPending(false);
+        }
+    };
 
     return <div className="h-[90vh]">
-        
-            <Card title="Send">
-                <div >
-                    <TextInput placeholder={"Number"} label="Number" onChange={(value) => {
-                        setNumber(value)
-                    }} />
-                    <TextInput placeholder={"Amount"} label="Amount" onChange={(value) => {
-                        setAmount(value)
-                    }} />
-                    <div className="pt-4 flex justify-center">
-                        <Button onClick={async () => {
-                            const message = await createP2PTransactions(Number(amount)*100,number)
-                            console.log(message);
-                            alert(message);
-                        }}>Send</Button>
-                    </div>
+        <Card title="Send">
+            <div>
+                <TextInput placeholder={"Number"} label="Number" value={number} onChange={setNumber} />
+                <TextInput placeholder={"Amount"} label="Amount (INR)" value={amount} onChange={setAmount} />
+                <div className="pt-4 flex justify-center">
+                    <Button onClick={send} disabled={pending}>{pending ? "Sending..." : "Send"}</Button>
                 </div>
-            </Card>
-       
+                {status ? <div className="pt-4 text-center text-sm text-slate-600">{status}</div> : null}
+            </div>
+        </Card>
     </div>
 }
