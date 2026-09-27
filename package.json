@@ -5,6 +5,10 @@
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
+    "test": "turbo test",
+    "db:migrate": "cd packages/db && npx prisma migrate deploy",
+    "db:seed": "cd packages/db && npx ts-node prisma/seed.ts",
+    "db:up": "docker compose up -d",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "db:generate": "cd packages/db && npx prisma generate && cd ../..",
     "start-user-app": "cd ./apps/user-app && npm run start"

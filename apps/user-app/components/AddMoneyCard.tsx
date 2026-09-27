@@ -17,6 +17,7 @@ const SUPPORTED_BANKS = [{
 
 export const AddMoney = () => {
     const [amount,setAmount] = useState<number>(0);
+    const [error, setError] = useState<string | null>(null);
     const [provider,setProvider] = useState<string>(SUPPORTED_BANKS[0]?.name || "");
     const [redirectUrl, setRedirectUrl] = useState(SUPPORTED_BANKS[0]?.redirectUrl);
     return <Card title="Add Money">
@@ -36,12 +37,18 @@ export const AddMoney = () => {
         }))} />
         <div className="flex justify-center pt-4">
             <Button onClick={async () => {
-                await createOnRampTransactions(amount,provider);
+                const { token } = await createOnRampTransactions(amount, provider);
+                if (!token) {
+                    setError("Enter an amount greater than zero");
+                    return;
+                }
+                setError(null);
                 window.location.href = redirectUrl || "";
             }}>
             Add Money
             </Button>
         </div>
+        {error ? <div className="pt-4 text-center text-sm text-red-600">{error}</div> : null}
     </div>
 </Card>
 }

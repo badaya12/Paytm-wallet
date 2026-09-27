@@ -5,10 +5,16 @@
         "@prisma/client": "^5.11.0"
     },
     "devDependencies": {
-        "prisma": "5.11.0"
+        "prisma": "5.11.0",
+        "tsx": "^4.19.2",
+        "vitest": "^1.6.0"
     },
     "exports": {
-        "./client": "./index.ts"
+        "./client": "./index.ts",
+        "./ledger": "./ledger.ts"
+    },
+    "scripts": {
+        "test": "vitest run"
     },
     "prisma": {
         "seed": "ts-node prisma/seed.ts"
